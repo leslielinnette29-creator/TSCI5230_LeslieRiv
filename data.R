@@ -18,6 +18,8 @@ library(dplyr);#add dplyr library
 library(tidymodels);
 library(ggfortify);
 #init---- 
+check_unique <- function(xx){nrow(xx) == nrow(unique(xx))}
+
 #(the 4 dashes after a comment will help you colapse information on your screen. devide it by sections)
 options(max.print=500);
 panderOptions('table.split.table',Inf); panderOptions('table.split.cells',Inf)
@@ -53,7 +55,8 @@ data_diab_encounters <- data0[["encounters"]] %>%
   filter(Id %in% criteria$encounter_diabetes)
 setdiff(criteria$patient_diabetes,data_diab_encounters$PATIENT) #this is a way to validate if there is not data missing
 setdiff(data_diab_encounters$PATIENT,criteria$patient_diabetes)
-data_diab_patient_encounters <- left_join(data_diab_patients, data_diab_encounters, by=c("Id"="PATIENT"))
+data_diab_patient_encounters <- left_join(data_diab_patients, data_diab_encounters, by=c("Id"="PATIENT")) %>%
+  mutate(ENCOUNTER=Id.y)
 
 
 # this a way to validate your join and stop the script if the result isn’t what you expect ----
@@ -65,6 +68,8 @@ if (nrow(data_diab_patient_encounters) != nrow(data_diab_encounters)) {
 
 
 med_met <- filter(data0$medications, CODE %in% rxnorm_lookup$rxcui)
+
+data_diab_encountersmet<-left_join(data_diab_patient_encounters,med_met,by=c("ENCOUNTER"="ENCOUNTER"))
 
 #age distribution (average, min, max)
 data0$patients %>% mutate(DEATHDATE=as.Date(DEATHDATE),BIRTHDATE=as.Date(BIRTHDATE),
