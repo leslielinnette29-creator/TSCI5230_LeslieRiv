@@ -24,6 +24,8 @@ rxnorm = "./output/Metformin_RxNav_6809_table.csv"
 # Skip the first 2 lines and filter for relevant term types
 try:
     rxnorm_lookup = pd.read_csv(rxnorm, skiprows=2)
+
+    
     rxnorm_lookup = rxnorm_lookup[
         rxnorm_lookup['termType'].isin(
             ["BN", "IN", "MIN", "PIN", "SBD", "SBDC", "SBDF", "SBDFP", "SBDG", "SCD", "SCDC", "SCDF", "SCDG"]
@@ -33,7 +35,8 @@ except FileNotFoundError:
     print(f"Error: RxNorm file not found at {rxnorm}")
     # Create an empty DataFrame to prevent script crash
     rxnorm_lookup = pd.DataFrame({'rxcui': [], 'termType': []})
-
+rxnorm2=rxnorm_lookup
+rxnorm3=rxnorm_lookup.copy (deep=True)
 # Load all CSV files in the datasource directory into a dictionary of DataFrames
 data0 = {}
 for filename in os.listdir(datasource):
