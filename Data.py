@@ -9,7 +9,7 @@ from datetime import datetime, date
 debug = 0
 seed = 22
 np.random.seed(seed) # Set seed for reproducibility
-
+#use repl_python()to connect python to the section
 # In Python/Pandas, we usually don't need options for print output as
 # extensively as in R. max_rows/max_columns settings can be adjusted if needed.
 # pd.set_option('display.max_rows', 500)
@@ -47,7 +47,7 @@ for filename in os.listdir(datasource):
         try:
             data0[key_name] = pd.read_csv(file_path)
             # Standardize column names to uppercase for consistency with R script
-            data0[key_name].columns = [col.upper() for col in data0[key_name].columns]
+            #data0[key_name].columns = [col.upper() for col in data0[key_name].columns]
         except Exception as e:
             print(f"Could not load or process {filename}: {e}")
 
@@ -56,10 +56,10 @@ for filename in os.listdir(datasource):
 # Find patients and encounters associated with a diagnosis of 'diab' (diabetes)
 # using a case-insensitive regex search for '\bdiab' in the DESCRIPTION column.
 
-if 'CONDITIONS' in data0:
+if 'conditions' in data0:
     # Use str.contains with regex for the search
-    criteria_df = data0['CONDITIONS'][
-        data0['CONDITIONS']['DESCRIPTION'].str.contains(r'\bdiab', case=False, na=False)
+    criteria_df = data0['conditions'][
+        data0['conditions']['DESCRIPTION'].str.contains(r'\bdiab', case=False, na=False)
     ]
 
     criteria = {
@@ -67,20 +67,12 @@ if 'CONDITIONS' in data0:
         'encounter_diabetes': criteria_df['ENCOUNTER'].unique().tolist()
     }
 
-    # Filter patients and encounters DataFrames
-    if 'PATIENTS' in data0:
-        data_diab_patients = data0['PATIENTS'][
-            data0['PATIENTS']['ID'].isin(criteria['patient_diabetes'])
-        ].copy() # Use .copy() to avoid SettingWithCopyWarning
-    else:
-        data_diab_patients = pd.DataFrame()
+    # Filter patients and encounters DataFrame
+    data_diab_patients = data0['patients'][data0['patients']['ID'].isin(criteria['patient_diabetes'])].copy() # Use .copy() to avoid SettingWithCopyWarning
 
-    if 'ENCOUNTERS' in data0:
-        data_diab_encounters = data0['ENCOUNTERS'][
-            data0['ENCOUNTERS']['ID'].isin(criteria['encounter_diabetes'])
-        ].copy()
-    else:
-        data_diab_encounters = pd.DataFrame()
+    data_diab_encounters = data0['encounters'][
+        data0['encounters']['ID'].isin(criteria['encounter_diabetes'])
+    ].copy()
 
     # R's setdiff is equivalent to finding elements in one list but not the other
     missing_in_encounters = set(criteria['patient_diabetes']) - set(data_diab_encounters['PATIENT'].unique())
@@ -148,9 +140,9 @@ else:
 
 # --- Age Distribution Calculation ---
 
-if 'PATIENTS' in data0:
+if 'patients' in data0:
     # Convert date columns to datetime objects
-    patients_df = data0['PATIENTS'].copy()
+    patients_df = data0['patients'].copy()
     patients_df['DEATHDATE'] = pd.to_datetime(patients_df['DEATHDATE'])
     patients_df['BIRTHDATE'] = pd.to_datetime(patients_df['BIRTHDATE'])
 
@@ -174,18 +166,13 @@ if 'PATIENTS' in data0:
     # The 'as.numeric(date)' conversion in R returns the number of days since the epoch (1970-01-01)
     # In Pandas, subtracting datetime objects gives a Timedelta, which we convert to days.
     patients_df['AGE_DAYS'] = (patients_df['ENDDATE'] - patients_df['BIRTHDATE'].dt.date)
-    patients_df['AGE'] = patients_df['AGE_DAYS'].dt.days / 365.25
+    patients_df['AGE'] = patients_df['AGE_DAYS'] / 365.25
 
     # Group by 'ALIVE' and summarize age distribution
-    age_summary = patients_df.groupby('ALIVE')['AGE'].agg(
-        avg_age=('mean', 'mean'), # 'mean' is the pandas aggregation function
-        min_age=('min', 'min'),
-        max_age=('max', 'max'),
-        count=('count', 'size')
-    ).reset_index()
+
 
     # Print the resulting summary table (similar to pander in R)
     print("\n--- Age Distribution Summary ---")
     print(age_summary)
 else:
-    print("Warning: Cannot calculate age distribution. 'PATIENTS' data is missing.")
+    print("Warning: Cannot calculate age distribution. 'patients' data is missing.")
