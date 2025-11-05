@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import os
 import re
+import pprint
 from datetime import datetime, date
 
 # --- init (Setup and Configuration) ---
@@ -68,10 +69,10 @@ if 'conditions' in data0:
     }
 
     # Filter patients and encounters DataFrame
-    data_diab_patients = data0['patients'][data0['patients']['ID'].isin(criteria['patient_diabetes'])].copy() # Use .copy() to avoid SettingWithCopyWarning
+    data_diab_patients = data0['patients'][data0['patients']['Id'].isin(criteria['patient_diabetes'])].copy() # Use .copy() to avoid SettingWithCopyWarning
 
     data_diab_encounters = data0['encounters'][
-        data0['encounters']['ID'].isin(criteria['encounter_diabetes'])
+        data0['encounters']['Id'].isin(criteria['encounter_diabetes'])
     ].copy()
 
     # R's setdiff is equivalent to finding elements in one list but not the other
@@ -90,13 +91,13 @@ if 'conditions' in data0:
         data_diab_patient_encounters = pd.merge(
             data_diab_patients,
             data_diab_encounters,
-            left_on='ID',
+            left_on='Id',
             right_on='PATIENT',
             how='left',
             suffixes=('_PATIENT', '_ENCOUNTER') # Append suffixes to duplicate columns
         )
         # Recreate the ENCOUNTER column as done in R
-        data_diab_patient_encounters['ENCOUNTER'] = data_diab_patient_encounters['ID_ENCOUNTER']
+        data_diab_patient_encounters['ENCOUNTER'] = data_diab_patient_encounters['Id_ENCOUNTER']
     else:
         # Create an empty DataFrame with expected columns if a dependency is missing
         print("Warning: Missing 'PATIENTS' or 'ENCOUNTERS' data to perform join.")
@@ -116,14 +117,12 @@ if 'conditions' in data0:
 # --- Metformin Medication and Final Join ---
 
 # Filter medications for metformin based on RxNorm lookup
-if 'MEDICATIONS' in data0 and 'rxcui' in rxnorm_lookup.columns:
-    med_met = data0['MEDICATIONS'][
-        data0['MEDICATIONS']['CODE'].astype(str).isin(rxnorm_lookup['rxcui'].astype(str))
-    ]
-else:
-    med_met = pd.DataFrame()
-    print("Warning: Missing 'MEDICATIONS' data or 'rxcui' in lookup to filter metformin.")
 
+med_met = data0['medications'][
+    data0['medications']['CODE'].astype(str).isin(rxnorm_lookup['rxcui'].astype(str))]
+    
+    med_med=data0['medications'].copy(deep=TRUE)
+    med_med["TOTAL COST_ROUNDED]"=med_met["TOTALCOST"].round()
 # Join diabetes patient encounters with metformin prescriptions
 if not data_diab_patient_encounters.empty and not med_met.empty:
     data_diab_encountersmet = pd.merge(
@@ -161,11 +160,12 @@ if 'patients' in data0:
             return min(today, death_date.date())
 
     patients_df['ENDDATE'] = patients_df.apply(get_end_date, axis=1)
+    patients_df['ENDDATE'] = patients_df["DEATHDATE"].fillna(datetime.today())
 
     # Calculate age in years (age=as.numeric(enddate-BIRTHDATE)/365.25)
     # The 'as.numeric(date)' conversion in R returns the number of days since the epoch (1970-01-01)
     # In Pandas, subtracting datetime objects gives a Timedelta, which we convert to days.
-    patients_df['AGE_DAYS'] = (patients_df['ENDDATE'] - patients_df['BIRTHDATE'].dt.date)
+    patients_df['AGE_DAYS'] = (patients_df['ENDDATE'] - patients_df['BIRTHDATE'])
     patients_df['AGE'] = patients_df['AGE_DAYS'] / 365.25
 
     # Group by 'ALIVE' and summarize age distribution
@@ -176,3 +176,52 @@ if 'patients' in data0:
     print(age_summary)
 else:
     print("Warning: Cannot calculate age distribution. 'patients' data is missing.")
+
+# to round number in table first option
+ round(data0["medications"]["TOTALCOST"]) 
+ # to round numbers in table seciond option
+ data0["medications"]["TOTALCOST"].round()
+ 
+ medications=data0["medications"].copy()
+ 
+ 
+ #converting a column to a python list ( what R called vector)
+ med_met["TOTALCOST"].to list() #gives your raw numbers
+ # The are several ways to do round numbers of results these are the three options discussed in class 
+result=[]
+for xx in TOTALCOST_list:
+  #result=result+[round(xx)]
+  #result+=[round(xx)]
+  #result.append(round(xx))
+  
+#List Comprehension
+result2=[round(xx) for xx in TOTALCOST_list] # if you want to filter to match particular criteria
+
+result3=[round(xx) for xx in TOTALCOST_list if xx >10] #if doinfg if  else you have if  first 
+
+#Dictionaries
+dresult={}
+for xx in data0.keys():
+  #dresult[xx]=data0[xx].keys().tolist()
+  dresult.update({xx:data0[xx].keys().tolist()})
+  
+  {"patients":['Id', 'BIRTHDATE', 'DEATHDATE', 'SSN', 'DRIVERS],""} "} 'allergies'['START', 'STOP', 'PATIENT', 'ENCOUNTER', 'CODE', 'SYSTEM', 'DESCRIPTION', 'TYPE', 'CATEGORY', 'REACTION1', 'DESCRIPTION1', 'SEVERITY1', 'REACTION2', 'DESCRIPTION2', 'SEVERITY2']observations is not in my list
+  
+pprint.pprint(dresult)  # to see the dictionay in more formated way
+#Dictionary Comprehension
+dresult2={xx:data0[xx].keys(),tolist() for xx in data0.keys()}
+pprint.pprint(dresult2)
+
+#Creating with Zip
+#1 Create a list keys 
+tablenames=data0.keys()
+
+#2 Create a list with table names using list comprehesion
+
+columnames=[data0[xx].keys().tolist() for xx in tablenames]
+
+#3Combine
+dresult3=dict(zip(tablenames,columnames))
+pprint.pprint(dresult3)
+
+
