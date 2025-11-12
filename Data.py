@@ -1,3 +1,10 @@
+"""
+library(reticulate) # load the library for working with python from RStudio, this is R so it shouldn't be in an executable part of your python script
+repl_python() # get into an interactive python session. This is also an R command, so also should be here in the commented-out part
+# below here are python commands to run, bu only if you are missing that library. In this example, pandas
+import sys
+!python -m pip install pandas
+"""
 import pandas as pd
 import numpy as np
 import os
@@ -121,8 +128,9 @@ if 'conditions' in data0:
 med_met = data0['medications'][
     data0['medications']['CODE'].astype(str).isin(rxnorm_lookup['rxcui'].astype(str))]
     
-    med_med=data0['medications'].copy(deep=TRUE)
-    med_med["TOTAL COST_ROUNDED]"=med_met["TOTALCOST"].round()
+med_med=data0['medications'].copy(deep=True)
+med_med["TOTAL COST_ROUNDED"]=med_met["TOTALCOST"].round()
+    
 # Join diabetes patient encounters with metformin prescriptions
 if not data_diab_patient_encounters.empty and not med_met.empty:
     data_diab_encountersmet = pd.merge(
@@ -172,25 +180,25 @@ if 'patients' in data0:
 
 
     # Print the resulting summary table (similar to pander in R)
-    print("\n--- Age Distribution Summary ---")
-    print(age_summary)
+    #print("\n--- Age Distribution Summary ---")
+    #print(age_summary)
 else:
     print("Warning: Cannot calculate age distribution. 'patients' data is missing.")
 
 # to round number in table first option
- round(data0["medications"]["TOTALCOST"]) 
- # to round numbers in table seciond option
- data0["medications"]["TOTALCOST"].round()
- 
- medications=data0["medications"].copy()
- 
- 
- #converting a column to a python list ( what R called vector)
- med_met["TOTALCOST"].to list() #gives your raw numbers
- # The are several ways to do round numbers of results these are the three options discussed in class 
+round(data0["medications"]["TOTALCOST"]) 
+# to round numbers in table seciond option
+data0["medications"]["TOTALCOST"].round()
+
+medications=data0["medications"].copy()
+
+
+#converting a column to a python list ( what R called vector)
+TOTALCOST_list=med_met["TOTALCOST"].to_list() #gives your raw numbers
+# The are several ways to do round numbers of results these are the three options discussed in class 
 result=[]
 for xx in TOTALCOST_list:
-  #result=result+[round(xx)]
+  result=result+[round(xx)]
   #result+=[round(xx)]
   #result.append(round(xx))
   
@@ -205,11 +213,10 @@ for xx in data0.keys():
   #dresult[xx]=data0[xx].keys().tolist()
   dresult.update({xx:data0[xx].keys().tolist()})
   
-  {"patients":['Id', 'BIRTHDATE', 'DEATHDATE', 'SSN', 'DRIVERS],""} "} 'allergies'['START', 'STOP', 'PATIENT', 'ENCOUNTER', 'CODE', 'SYSTEM', 'DESCRIPTION', 'TYPE', 'CATEGORY', 'REACTION1', 'DESCRIPTION1', 'SEVERITY1', 'REACTION2', 'DESCRIPTION2', 'SEVERITY2']observations is not in my list
   
 pprint.pprint(dresult)  # to see the dictionay in more formated way
 #Dictionary Comprehension
-dresult2={xx:data0[xx].keys(),tolist() for xx in data0.keys()}
+dresult2={xx:data0[xx].keys().to_list() for xx in data0.keys()}
 pprint.pprint(dresult2)
 
 #Creating with Zip
